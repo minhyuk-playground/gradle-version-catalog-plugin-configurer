@@ -5,19 +5,15 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
 data class TomlFilesDirectory(
-    val projectRootDirectoryName: String,
-    val directoryPathUnderProjectRoot: String,
-    val directorySeparator: String = "/"
+    val pathUnderProjectRoot: String = "/gradle",
+    val pathSeparator: String = "/"
 ) {
-    init {
-        require(projectRootDirectoryName.isNotBlank()) { "projectRootDirectoryName should not be blank" }
-    }
-
     fun findAllTomlFilePaths(settings: Settings): Set<Path> {
         val tomlFilesRootDirectoryPath = findTomlFilesRootDirectory(settings)
 
@@ -43,40 +39,47 @@ data class TomlFilesDirectory(
     }
 
     private fun findTomlFilesRootDirectory(settings: Settings): Path {
-        val projectRootDirectoryPath = findProjectRootDirectoryPath(settings)
-        return directoryPathUnderProjectRoot.let {
-            if (it.startsWith(directorySeparator)) {
-                return@let it
-            }
-            "$directorySeparator$it"
-        }.let {
-            if (directorySeparator == File.separator) {
-                return@let it
-            }
-            it.replace(directorySeparator, File.separator)
-        }.let {
-            Paths.get("$projectRootDirectoryPath$it")
-        }
-    }
-
-    private fun findProjectRootDirectoryPath(settings: Settings): Path {
-        if (VersionCatalogCache.isExists(CacheKey.PROJECT_ROOT_DIRECTORY_PATH)) {
-            return VersionCatalogCache.get(CacheKey.PROJECT_ROOT_DIRECTORY_PATH, Path::class)
+        if (VersionCatalogCache.isExists(CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH)) {
+            return VersionCatalogCache.get(CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH, Path::class)
         }
 
+        val tomlFilesDirectoryPath = replaceDirectorySeparator(pathSeparator)
         var currentDirectoryPath: Path? = Paths.get(settings.rootDir.absolutePath)
 
         do {
             if (currentDirectoryPath == null) {
-                throw NoSuchElementException("Not found project root directory. name : $projectRootDirectoryName")
+                throw NoSuchElementException("Not found toml files root directory. name : $pathUnderProjectRoot")
             }
 
-            if (currentDirectoryPath.name == projectRootDirectoryName) {
-                VersionCatalogCache.put(CacheKey.PROJECT_ROOT_DIRECTORY_PATH, currentDirectoryPath)
-                return currentDirectoryPath
+            val tomlFilesRootDirectoryPath = Paths.get(
+                currentDirectoryPath.toString(),
+                tomlFilesDirectoryPath.toString()
+            )
+
+            if (tomlFilesRootDirectoryPath.exists()) {
+                VersionCatalogCache.put(CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH, tomlFilesRootDirectoryPath)
+                return tomlFilesRootDirectoryPath
             }
 
             currentDirectoryPath = currentDirectoryPath.parent
         } while (true)
     }
+
+    private fun replaceDirectorySeparator(
+        oldSeparator: String,
+        newSeparator: String = File.separator
+    ): Path =
+        pathUnderProjectRoot.let {
+            if (it.startsWith(oldSeparator)) {
+                return@let it
+            }
+            "$oldSeparator$it"
+        }.let {
+            if (oldSeparator == File.separator) {
+                return@let it
+            }
+            it.replace(oldSeparator, newSeparator)
+        }.let {
+            Paths.get(it)
+        }
 }

@@ -7,7 +7,7 @@ import kotlin.reflect.cast
 object VersionCatalogCache {
     private val storage = mutableMapOf<CacheKey, Any>()
 
-    fun  put(key: CacheKey, value: Any) {
+    fun put(key: CacheKey, value: Any) {
         if (isExists(key)) {
             throw IllegalArgumentException("$key already exists")
         }
@@ -16,7 +16,7 @@ object VersionCatalogCache {
 
     fun isExists(key: CacheKey): Boolean = storage.containsKey(key)
 
-    fun <T: Any> get(key: CacheKey, valueType: KClass<T>): T {
+    fun <T : Any> get(key: CacheKey, valueType: KClass<T>): T {
         val value = storage[key] ?: throw NoSuchElementException("Not found $key value")
         if (valueType.isInstance(value)) {
             return valueType.cast(value)
@@ -30,5 +30,5 @@ object VersionCatalogCache {
 }
 
 enum class CacheKey {
-    PROJECT_ROOT_DIRECTORY_PATH
+    TOML_FILES_ROOT_DIRECTORY_PATH
 }

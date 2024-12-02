@@ -16,11 +16,11 @@ internal class VersionCatalogCacheTest {
     fun `이미 저장되어있는 값이라면 예외가 발생해야한다`() {
         // given
         val value = "hello world"
-        VersionCatalogCache.put(CacheKey.PROJECT_ROOT_DIRECTORY_PATH, value)
+        VersionCatalogCache.put(CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH, value)
 
         // when then
         assertThatThrownBy {
-            VersionCatalogCache.put(CacheKey.PROJECT_ROOT_DIRECTORY_PATH, value)
+            VersionCatalogCache.put(CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH, value)
         }.isExactlyInstanceOf(IllegalArgumentException::class.java)
     }
 
@@ -28,7 +28,7 @@ internal class VersionCatalogCacheTest {
     fun `저장된 값을 가져와야한다`() {
         // given
         val value = "hello world"
-        val cacheKey = CacheKey.PROJECT_ROOT_DIRECTORY_PATH
+        val cacheKey = CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH
         VersionCatalogCache.put(cacheKey, value)
 
         // when
@@ -42,7 +42,7 @@ internal class VersionCatalogCacheTest {
     fun `저장된 값이 없다면 예외가 발생해야한다`() {
         // given when then
         assertThatThrownBy {
-            VersionCatalogCache.get(CacheKey.PROJECT_ROOT_DIRECTORY_PATH, String::class)
+            VersionCatalogCache.get(CacheKey.TOML_FILES_ROOT_DIRECTORY_PATH, String::class)
         }.isExactlyInstanceOf(NoSuchElementException::class.java)
     }
 
